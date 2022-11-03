@@ -1,3 +1,7 @@
+use core::ops::{Deref, DerefMut};
+
+use volatile::Volatile;
+
 const BUFFER_HEIGHT: usize = 25;
 const BUFFER_WIDTH: usize = 80;
 
@@ -29,10 +33,10 @@ impl Writer {
                 let col = self.column_position;
 
                 let color_code = self.color_code;
-                self.buffer.chars[row][col] = ScreenChar {
+                self.buffer.chars[row][col].write(ScreenChar {
                     ascii_character: byte,
                     color_code,
-                };
+                });
                 self.column_position += 1;
             }
         }
@@ -45,7 +49,7 @@ impl Writer {
 
 #[repr(transparent)]
 struct Buffer {
-    chars: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT],
+    chars: [[Volatile<ScreenChar>; BUFFER_WIDTH]; BUFFER_HEIGHT],
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -53,6 +57,20 @@ struct Buffer {
 struct ScreenChar {
     ascii_character: u8,
     color_code: ColorCode,
+}
+
+impl Deref for ScreenChar {
+    type Target = ScreenChar;
+
+    fn deref(&self) -> &ScreenChar {
+        &(self)
+    }
+}
+
+impl DerefMut for ScreenChar {
+    fn deref_mut(&mut self) -> &mut ScreenChar {
+        self
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
