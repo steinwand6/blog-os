@@ -1,10 +1,20 @@
 use core::fmt;
 use core::ops::{Deref, DerefMut};
 
+use lazy_static::lazy_static;
+use spin::Mutex;
 use volatile::Volatile;
 
 const BUFFER_HEIGHT: usize = 25;
 const BUFFER_WIDTH: usize = 80;
+
+lazy_static! {
+    pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
+        column_position: 0,
+        color_code: ColorCode::new(Color::Yellow, Color::Black),
+        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) }
+    });
+}
 
 pub struct Writer {
     column_position: usize,
@@ -128,16 +138,4 @@ pub enum Color {
     Pink = 13,
     Yellow = 14,
     White = 15,
-}
-
-pub fn print_something() {
-    use core::fmt::Write;
-    let mut writer = Writer {
-        column_position: 0,
-        color_code: ColorCode::new(Color::LightGray, Color::Green),
-        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
-    };
-    writer.write_byte(b'H');
-    writer.write_string("ello! ");
-    write!(writer, "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
 }
