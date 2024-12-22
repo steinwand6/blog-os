@@ -1,0 +1,3 @@
+[tasks.build]
+command = "cargo"
+args = ["build", "--target", "thumbv7em-none-eabihf"]
